@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ruleta de nombres 🎡</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="logo.png" />
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <div class="app">
+    <header class="header">
+      <div class="header-top">
+        <div class="brand">
+          <!-- Si no tienes logo, puedes borrar la etiqueta img -->
+          <img src="logo.png" alt="Logo" class="logo" />
+          <div>
+            <h1>Ruleta de nombres 🎡</h1>
+            <p>Agrega nombres, gira la ruleta y el ganador se eliminará automáticamente.</p>
+          </div>
+        </div>
+
+        <button id="themeToggle" class="btn btn-secondary btn-small">
+          🌙 Modo oscuro
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Columna izquierda: Ruleta -->
+      <section class="panel panel-wheel">
+        <div class="wheel-container">
+          <div class="pointer"></div>
+          <canvas id="wheel" width="420" height="420"></canvas>
+        </div>
+        <p id="lastResult" class="status center"></p>
+        <button id="spinBtn" class="btn btn-primary btn-block">
+          🎲 Girar ruleta
+        </button>
+      </section>
+
+      <!-- Columna derecha: Controles -->
+      <section class="panel panel-controls">
+        <div class="field-group">
+          <label for="nameInput">Añadir nombre</label>
+          <div class="input-row">
+            <input id="nameInput" type="text" placeholder="Ej: Carlos" />
+            <button id="addBtn" class="btn btn-secondary">Añadir</button>
+          </div>
+          <p class="hint">
+            Pulsa <strong>Enter</strong> para añadir rápido.  
+            Puedes repetir nombres para que tengan más probabilidad de salir.
+          </p>
+        </div>
+
+        <div class="field-group">
+          <label>Lista de nombres</label>
+          <div id="nameList" class="name-list"></div>
+          <div class="actions-row">
+            <button id="clearBtn" class="btn btn-danger">
+              🗑 Limpiar todo
+            </button>
+          </div>
+        </div>
+
+        <p class="status">
+          Total de nombres: <strong id="countLabel">0</strong>
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Hecho con 💙 por Cesarina</span>
+    </footer>
+  </div>
+
+  <div id="confetti" class="confetti hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
