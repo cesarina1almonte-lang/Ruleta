@@ -9,16 +9,25 @@ const nameListDiv = document.getElementById("nameList");
 const countLabel = document.getElementById("countLabel");
 const lastResult = document.getElementById("lastResult");
 const confetti = document.getElementById("confetti");
+const spinLimitMsg = document.getElementById("spinLimitMsg");
+const themeToggle = document.getElementById("themeToggle");
+const keyInput = document.getElementById("keyInput");
+const authBtn = document.getElementById("authBtn");
+const lockHint = document.getElementById("lockHint");
+
+const SECRET_KEY = "navidad2024"; // Ajusta esta clave para ti
+const SPIN_LIMIT_KEY = "roulette-spin-used";
 
 let names = [];
 let angleCurrent = 0;
 let spinning = false;
+let controlsUnlocked = false;
+
+const palette = ["#b91c1c", "#22c55e", "#f59e0b", "#0ea5e9", "#a855f7"];
 
 // ---------- Funciones de dibujo de la ruleta ----------
-
-function getColor(i, total) {
-  const hue = (i * 360) / total;
-  return `hsl(${hue}, 75%, 65%)`;
+function getColor(i) {
+  return palette[i % palette.length];
 }
 
 function drawWheel() {
@@ -32,12 +41,12 @@ function drawWheel() {
 
   if (names.length === 0) {
     ctx.save();
-    ctx.fillStyle = "#e5e7eb";
+    ctx.fillStyle = "#f1f5f9";
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = "#6b7280";
+    ctx.fillStyle = "#64748b";
     ctx.textAlign = "center";
     ctx.font = "16px system-ui";
     ctx.fillText("Agrega nombres para empezar", cx, cy);
@@ -51,18 +60,16 @@ function drawWheel() {
     const startAngle = angleCurrent + i * arcSize;
     const endAngle = startAngle + arcSize;
 
-    // Segmento
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, radius, startAngle, endAngle);
     ctx.closePath();
-    ctx.fillStyle = getColor(i, names.length);
+    ctx.fillStyle = getColor(i);
     ctx.fill();
-    ctx.strokeStyle = "#f9fafb";
+    ctx.strokeStyle = "#fef2f2";
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Texto
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(startAngle + arcSize / 2);
@@ -85,37 +92,51 @@ function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
 }
 
-// ---------- Ruleta (spin) ----------
+// ---------- Límite de giro ----------
+function hasSpinAvailable() {
+  return localStorage.getItem(SPIN_LIMIT_KEY) !== "true";
+}
 
+function markSpinUsed() {
+  localStorage.setItem(SPIN_LIMIT_KEY, "true");
+  updateSpinLimitState();
+}
+
+function updateSpinLimitState() {
+  const used = !hasSpinAvailable();
+  spinBtn.disabled = spinning || used;
+  spinBtn.style.opacity = spinBtn.disabled ? "0.6" : "1";
+  spinLimitMsg.textContent = used
+    ? "Este dispositivo ya usó su único giro disponible."
+    : "";
+}
+
+// ---------- Ruleta (spin) ----------
 function spinWheel() {
   if (spinning) return;
+  if (!hasSpinAvailable()) {
+    alert("Solo se permite un giro por dispositivo en este enlace.");
+    updateSpinLimitState();
+    return;
+  }
   if (names.length === 0) {
     alert("Primero agrega al menos un nombre ✍️");
     return;
   }
 
   spinning = true;
-  spinBtn.disabled = true;
-  spinBtn.style.opacity = "0.6";
+  updateSpinLimitState();
 
   const num = names.length;
   const arcSize = (2 * Math.PI) / num;
-
-  // Elegimos un índice ganador al azar
   const randomIndex = Math.floor(Math.random() * num);
-
-  // Queremos que ese índice quede arriba (en la punta)
-  const pointerAngle = (3 * Math.PI) / 2; // hacia arriba
-  const targetAngleBase =
-    pointerAngle - (randomIndex * arcSize + arcSize / 2);
-
+  const pointerAngle = (3 * Math.PI) / 2;
+  const targetAngleBase = pointerAngle - (randomIndex * arcSize + arcSize / 2);
   const current = normalizeAngle(angleCurrent);
   const diff = normalizeAngle(targetAngleBase - current);
-
-  const extraTurns = 5; // vueltas extra
+  const extraTurns = 5;
   const totalRotation = diff + extraTurns * 2 * Math.PI;
-
-  const duration = 4000; // ms
+  const duration = 4000;
   const startTime = performance.now();
 
   function animate(time) {
@@ -130,8 +151,6 @@ function spinWheel() {
       requestAnimationFrame(animate);
     } else {
       spinning = false;
-      spinBtn.disabled = false;
-      spinBtn.style.opacity = "1";
 
       const selectedName = names[randomIndex];
       lastResult.innerHTML =
@@ -139,10 +158,10 @@ function spinWheel() {
       showConfetti();
       alert("Nombre seleccionado: " + selectedName);
 
-      // Eliminar el nombre ganador
       names.splice(randomIndex, 1);
       angleCurrent = 0;
       updateNameList();
+      markSpinUsed();
       drawWheel();
     }
   }
@@ -151,7 +170,6 @@ function spinWheel() {
 }
 
 // ---------- Confetti sencillo ----------
-
 function showConfetti() {
   confetti.classList.remove("hidden");
   confetti.classList.add("show");
@@ -163,7 +181,6 @@ function showConfetti() {
 }
 
 // ---------- Manejo de lista de nombres ----------
-
 function updateNameList() {
   nameListDiv.innerHTML = "";
 
@@ -192,8 +209,11 @@ function updateNameList() {
 }
 
 // ---------- Acciones de botones / inputs ----------
-
 function addName() {
+  if (!controlsUnlocked) {
+    alert("Solo el anfitrión puede añadir nombres. Desbloquea primero.");
+    return;
+  }
   const value = nameInput.value.trim();
   if (!value) return;
   names.push(value);
@@ -204,6 +224,10 @@ function addName() {
 }
 
 function clearAll() {
+  if (!controlsUnlocked) {
+    alert("Solo el anfitrión puede limpiar la lista.");
+    return;
+  }
   if (!names.length) return;
   if (!confirm("¿Seguro que quieres eliminar todos los nombres?")) return;
   names = [];
@@ -211,6 +235,52 @@ function clearAll() {
   angleCurrent = 0;
   updateNameList();
   drawWheel();
+}
+
+function setLockState(unlocked) {
+  controlsUnlocked = unlocked;
+  addBtn.disabled = !unlocked;
+  clearBtn.disabled = !unlocked;
+  nameInput.disabled = !unlocked;
+  const statusText = unlocked
+    ? "Controles desbloqueados. Ya puedes añadir o limpiar nombres."
+    : "Las acciones están bloqueadas. Introduce la clave para activar los controles.";
+  lockHint.textContent = statusText;
+  authBtn.textContent = unlocked ? "Bloquear" : "Desbloquear";
+}
+
+function handleAuth() {
+  if (controlsUnlocked) {
+    setLockState(false);
+    keyInput.value = "";
+    return;
+  }
+
+  const attempt = keyInput.value.trim();
+  if (!attempt) {
+    alert("Ingresa tu clave secreta.");
+    return;
+  }
+
+  if (attempt === SECRET_KEY) {
+    setLockState(true);
+    keyInput.value = "";
+    alert("Controles desbloqueados. ¡Felices fiestas!");
+  } else {
+    lockHint.textContent = "Clave incorrecta. Inténtalo de nuevo.";
+  }
+}
+
+// ---------- Tema ----------
+function applyTheme(dark) {
+  document.body.classList.toggle("dark", dark);
+  themeToggle.textContent = dark ? "☀️ Modo día" : "🌙 Modo noche";
+  localStorage.setItem("roulette-theme", dark ? "dark" : "light");
+}
+
+function initTheme() {
+  const saved = localStorage.getItem("roulette-theme");
+  applyTheme(saved === "dark");
 }
 
 // Eventos
@@ -223,9 +293,26 @@ nameInput.addEventListener("keydown", (e) => {
   }
 });
 
+themeToggle.addEventListener("click", () => {
+  const isDark = document.body.classList.contains("dark");
+  applyTheme(!isDark);
+});
+
+authBtn.addEventListener("click", handleAuth);
+
+keyInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    handleAuth();
+  }
+});
+
 spinBtn.addEventListener("click", spinWheel);
 clearBtn.addEventListener("click", clearAll);
 
 // Dibujo inicial
+setLockState(false);
 updateNameList();
+initTheme();
+updateSpinLimitState();
 drawWheel();

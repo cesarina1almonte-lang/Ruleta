@@ -2,33 +2,36 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Ruleta de nombres 🎡</title>
+  <title>Ruleta Navideña 🎄</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="logo.png" />
 </head>
 <body>
   <div class="bg-gradient"></div>
+  <div class="snow"></div>
 
   <div class="app">
     <header class="header">
       <div class="header-top">
         <div class="brand">
-          <!-- Si no tienes logo, puedes borrar la etiqueta img -->
           <img src="logo.png" alt="Logo" class="logo" />
           <div>
-            <h1>Ruleta de nombres 🎡</h1>
-            <p>Agrega nombres, gira la ruleta y el ganador se eliminará automáticamente.</p>
+            <p class="badge">Especial Nochebuena</p>
+            <h1>Ruleta Navideña de Nombres</h1>
+            <p>
+              Agrega a tus invitados, gira la ruleta y cada ganador se quita del
+              sorteo para que nadie repita. ¡Feliz Navidad! 🎁
+            </p>
           </div>
         </div>
 
         <button id="themeToggle" class="btn btn-secondary btn-small">
-          🌙 Modo oscuro
+          🌙 Modo noche
         </button>
       </div>
     </header>
 
     <main class="layout">
-      <!-- Columna izquierda: Ruleta -->
       <section class="panel panel-wheel">
         <div class="wheel-container">
           <div class="pointer"></div>
@@ -38,19 +41,41 @@
         <button id="spinBtn" class="btn btn-primary btn-block">
           🎲 Girar ruleta
         </button>
+        <p id="spinLimitMsg" class="status center"></p>
       </section>
 
-      <!-- Columna derecha: Controles -->
       <section class="panel panel-controls">
         <div class="field-group">
-          <label for="nameInput">Añadir nombre</label>
+          <label for="nameInput">Añadir nombre (solo anfitrión)</label>
           <div class="input-row">
-            <input id="nameInput" type="text" placeholder="Ej: Carlos" />
+            <input
+              id="nameInput"
+              type="text"
+              placeholder="Ej: María"
+              autocomplete="off"
+            />
             <button id="addBtn" class="btn btn-secondary">Añadir</button>
           </div>
           <p class="hint">
-            Pulsa <strong>Enter</strong> para añadir rápido.  
-            Puedes repetir nombres para que tengan más probabilidad de salir.
+            Pulsa <strong>Enter</strong> para añadir rápido.
+            Los nombres duplicados aumentan la probabilidad de salir.
+          </p>
+        </div>
+
+        <div class="field-group">
+          <label>Control de anfitrión</label>
+          <div class="input-row">
+            <input
+              id="keyInput"
+              type="password"
+              placeholder="Contraseña secreta"
+              autocomplete="off"
+            />
+            <button id="authBtn" class="btn btn-success">Desbloquear</button>
+          </div>
+          <p class="hint" id="lockHint">
+            Las acciones de añadir y limpiar están protegidas. Solo el
+            anfitrión puede desbloquearlas con la clave.
           </p>
         </div>
 
@@ -71,7 +96,7 @@
     </main>
 
     <footer class="footer">
-      <span>Hecho con 💙 por Cesarina</span>
+      <span>Hecho con 💚 para la víspera de Navidad</span>
     </footer>
   </div>
 
